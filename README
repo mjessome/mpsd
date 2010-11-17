@@ -1,0 +1,29 @@
+mpdsd v0.1
+
+About
+=====
+mpdsd is a daemon for keeping detailed stats of music played in mpd.
+
+Installation
+============
+* ./install.sh - this will install to /usr/local/bin
+
+* To have run at startup, add to DAEMONS section of rc.conf
+
+Configuration
+=============
+Currently, configuration is done by editing the beginning of mpdsd.py:
+        HOST: The mpd host to connect to.
+        PORT: The port to connect to.
+        PASSWORD: mpd password; if none, set to False.
+        DB_PATH: Where the db should be stored.
+        POLL_FREQUENCY: How often to poll mpd (in seconds).
+        ADD_THRESHOLD: How far into the song to add the track.
+        STATS_TEMPLATE: currently not implemented.
+
+Usage
+=====
+* sudo mpdsd start
+* sudo mpdsd restart
+* sudo mpdsd stop
+

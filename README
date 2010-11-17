@@ -4,11 +4,17 @@ About
 =====
 mpdsd is a daemon for keeping detailed stats of music played in mpd.
 
+Requirements
+============
+* python 2.6
+* sqlite3
+* python-mpd
+
 Installation
 ============
-* ./install.sh - this will install to /usr/local/bin
+* ./install - this will install to /usr/local/bin
 
-* To have run at startup, add to DAEMONS section of rc.conf
+* To run at startup, add to DAEMONS section of rc.conf
 
 Configuration
 =============

@@ -12,7 +12,7 @@ Requirements
 
 Installation
 ============
-* ./install - this will install to /usr/local/bin
+* ./install - this will install to /usr/local/bin, and an init script to /etc/rc.d. Modify this to suit your system's needs.
 
 * To run at startup, add to DAEMONS section of rc.conf
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 
-sudo cp dbase.pyc /usr/local/bin/
-sudo cp daemon.pyc /usr/local/bin/
-sudo cp mpdsd.py /usr/local/bin/mpdsd
+cp dbase.pyc /usr/local/bin/
+cp daemon.pyc /usr/local/bin/
+cp mpdsd.py /usr/local/bin/mpdsd
+cp init/mpdsd /etc/rc.d/mpdsd

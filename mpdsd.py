@@ -134,17 +134,17 @@ def eventLoop(client, db):
                         #print "Current time: " + str(status['time'].rsplit(':')[0])
                         if currentSong['id'] != trackID:
                                 if prevDate != None:
-                                        db.execute('''UPDATE listened SET listentime=? WHERE date=?''', (total,prevDate))
-                                        db.commit()
-                                total = int(status['time'].rsplit(':')[0])
+                                        #New track
+                                        dbase.updateListentime(db, total, prevDate)
+                                        total = int(status['time'].rsplit(':')[0])
+                                        prevDate = None;
                                 if total >= ADD_THRESHOLD*int(currentSong['time']):
                                         print currentSong['title']
                                         prevDate = dbase.dbUpdate(db, currentSong)
                                         trackID = currentSong['id']
                 elif status['state'] == 'stop':
                         if prevDate != None:
-                                db.execute('''UPDATE listened SET listentime=? WHERE date=?''', (total, prevDate))
-                                db.commit()
+                                dbase.updateListentime(db, total, prevDate);
                                 total = 0
                                 prevDate = None
                 time.sleep(POLL_FREQUENCY)

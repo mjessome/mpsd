@@ -16,8 +16,8 @@ def dbConnect(db_path):
         try:
                 db = sqlite3.connect(db_path)
                 c = db.cursor()
-        except err:
-                print "error connecting to database"
+        except sqlite3.Error, e:
+                print "Error: "+e.args[0]
                 return None
 
         c.execute('''PRAGMA foreign_key = ON''')
@@ -194,3 +194,11 @@ def dbUpdate(db, track):
         db.commit()
 
         return t
+
+
+def updateListentime(db, total, date):
+        c = db.cursor();
+        c.execute('''UPDATE listened SET listentime=? WHERE date=?''', (total, date))
+        db.commit()
+        print "Updated listentime to " + str(total)
+

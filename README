@@ -6,9 +6,9 @@ mpdsd is a daemon for keeping detailed stats of music played in mpd.
 
 Requirements
 ============
-* python 2.6
+* python 3
 * sqlite3
-* python-mpd
+* python3-mpd
 
 Installation
 ============

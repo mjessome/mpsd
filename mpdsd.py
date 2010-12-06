@@ -50,15 +50,16 @@ def mpdConnect(client, conn_id):
         Connect to mpd
         """
         try:
-                client.connect(**conn_id)
+                #client.connect(client,**conn_id)
+                client.connect('localhost', '6600')
         except (mpd.MPDError, SocketError):
-                print "Could not connect to %s: %s" %(HOST, PORT)
+                print("Could not connect to ", HOST, ":", PORT)
                 return False
         except:
-                print "Unexpected error: %s", sys.exec_info()[0]
+                print(("Unexpected error: ", sys.exc_info()[0]))
                 return False
         else:
-                print "Connected to %s:%s" %(HOST, PORT)
+                print(("Connected to %s:%s" %(HOST, PORT)))
                 return True
 
 
@@ -69,16 +70,16 @@ def mpdAuth(client, pword):
         try:
                 client.password(pword)
         except mpd.CommandError:
-                print "Could not authenticate"
+                print("Could not authenticate")
                 return False
         except mpd.ConnectionError:
-                print "Problems connecting to %s:%s" %(HOST, PORT)
+                print(("Problems connecting to %s:%s" %(HOST, PORT)))
                 return False
         except:
-                print "Unexpected error: %s", sys.exc_value
+                print(("Unexpected error: %s", sys.exc_info()[1]))
                 return False
         else:
-                print "Authenticated to %s:%s" %(HOST, PORT)
+                print(("Authenticated to %s:%s" %(HOST, PORT)))
                 return True
 
 
@@ -89,13 +90,13 @@ def mpdGetStatus(client):
         try:
                 return client.status()
         except mpd.CommandError:
-                print "Could not get status"
+                print("Could not get status")
                 return False
         except mpd.ConnectionError:
-                print "Problems connecting to %s:%s" %(HOST, PORT)
+                print("Problems connecting to %s:%s" %(HOST, PORT))
                 return False
         except:
-                print "Unexpected error:", sys.exc_value
+                print("Unexpected error:", sys.exc_info()[1])
                 return False
         else:
                 return True
@@ -107,9 +108,9 @@ def mpdCurrentSong(client):
         """
         try:
                 return client.currentsong()
-        except (mpd.MPDError, SocketTimeout), err:
-                print "Could not get status:"
-                print "\t", err
+        except (mpd.MPDError, SocketTimeout) as err:
+                print("Could not get status:")
+                print(("\t", err))
                 return False
 
 
@@ -122,9 +123,9 @@ def eventLoop(client, db):
                 if not status:
                         client.disconnect();
                         while not mpdConnect(client, CONN_ID):
-                                print "Attempting reconnect"
+                                print("Attempting reconnect")
                                 time.sleep(POLL_FREQUENCY)
-                        print "Connected!"
+                        print("Connected!")
                         if PASSWORD:
                                 mpdAuth(client, PASSWORD)
                 elif status['state'] == 'play':
@@ -139,7 +140,7 @@ def eventLoop(client, db):
                                         total = int(status['time'].rsplit(':')[0])
                                         prevDate = None;
                                 if total >= ADD_THRESHOLD*int(currentSong['time']):
-                                        print currentSong['title']
+                                        print((currentSong['title']))
                                         prevDate = dbase.dbUpdate(db, currentSong)
                                         trackID = currentSong['id']
                 elif status['state'] == 'stop':
@@ -152,7 +153,7 @@ def eventLoop(client, db):
 
 def checkConfig():
         if POLL_FREQUENCY >= 1:
-                print "Error: Poll Frequency must be < 1"
+                print("Error: Poll Frequency must be < 1")
                 
 
 class mpdStatsDaemon(Daemon):
@@ -162,16 +163,16 @@ class mpdStatsDaemon(Daemon):
                
                 while True:
                         while not mpdConnect(client, CONN_ID):
-                                print "Attempting reconnect"
+                                print("Attempting reconnect")
                                 time.sleep(POLL_FREQUENCY)
-                        print "Connected!"
+                        print("Connected!")
                         if PASSWORD:
                                 mpdAuth(client, PASSWORD)
                         
                         eventLoop(client, db)
 
                 mpdGetStatus(client)
-                print mpdGetStatus(client)
+                print((mpdGetStatus(client)))
 
                 client.disconnect()
 
@@ -192,10 +193,10 @@ if __name__ == "__main__":
                         else:
                                 stats.generateStats(STATS_TEMPLATE)
                 else:
-                        print "Unknown command"
-                        print "usage: %s start|stop|restart|stats" % sys.argv[0]
+                        print("Unknown command")
+                        print(("usage: %s start|stop|restart|stats" % sys.argv[0]))
                         sys.exit(2)
                 sys.exit(0)
         else:
-                print "usage: %s start|stop|restart|stats" % sys.argv[0]
+                print(("usage: %s start|stop|restart|stats" % sys.argv[0]))
                 sys.exit(2)

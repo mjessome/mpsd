@@ -16,8 +16,8 @@ def dbConnect(db_path):
         try:
                 db = sqlite3.connect(db_path)
                 c = db.cursor()
-        except sqlite3.Error, e:
-                print "Error: "+e.args[0]
+        except sqlite3.Error as e:
+                print("Error: "+e.args[0])
                 return None
 
         c.execute('''PRAGMA foreign_key = ON''')
@@ -69,12 +69,12 @@ def getInfo(info):
 
         rval = {}
 
-        if info.has_key('albumartist'):
+        if 'albumartist' in info:
                 rval['albumartist'] = info['albumartist']
         else:
                 rval['albumartist'] = ""
 
-        if info.has_key('artist'):
+        if 'artist' in info:
                 rval['artist'] = info['artist']
                 if(rval['albumartist'] == ""):
                         rval['albumartist'] = rval['artist']
@@ -85,27 +85,27 @@ def getInfo(info):
                         rval['albumartist'] = "Unknown Artist"
                         rval['artist'] = "Unknown Artist"
 
-        if info.has_key('date'):
+        if 'date' in info:
                 rval['date'] = int(info['date'].rsplit("-")[0])
         else:
                 rval['date'] = 0
 
-        if info.has_key('track'):
+        if 'track' in info:
                 rval['track'] = int(info['track'].rsplit("/")[0])
         else:
                 rval['track'] = 0
 
-        if info.has_key('title'):
+        if 'title' in info:
                 rval['title'] = info['title']
         else:
                 rval['title'] = "Unknown Track"
 
-        if info.has_key('album'):
+        if 'album' in info:
                 rval['album'] = info['album']
         else:
                 rval['album'] = "Unknown Album"
 
-        if info.has_key('genre'):
+        if 'genre' in info:
                 #check if genre is a list
                 if type(info['genre']).__name__ == 'list':
                         rval['genre'] = info['genre'][0]
@@ -141,11 +141,11 @@ def dbUpdate(db, track):
                                         (?,?)''', (None, info[a]))
                         db.commit()
                         id[a] = c.lastrowid
-                        print "\tNew Artist"
+                        print("\tNew Artist")
                 else:
                         id[a] = int(row[0])
 
-                print "\t"+a+" id:" + str(a)
+                print("\t"+a+" id:" + str(a))
 
                 if(info['artist'] == info['albumartist']):
                         #Must be a better way...
@@ -164,7 +164,7 @@ def dbUpdate(db, track):
                 db.commit()
                 id['album'] = c.lastrowid
 
-                print "\tNew Album ID: " + str(id['album'])
+                print("\tNew Album ID: " + str(id['album']))
         else:
                 id['album'] = int(row[0])
         
@@ -181,7 +181,7 @@ def dbUpdate(db, track):
                               info['time'], info['genre'], id['album']))
                 db.commit()
                 id['track'] = c.lastrowid
-                print "\tNew Track"
+                print("\tNew Track")
         else:
                 id['track'] = int(row[0])
 
@@ -200,5 +200,5 @@ def updateListentime(db, total, date):
         c = db.cursor();
         c.execute('''UPDATE listened SET listentime=? WHERE date=?''', (total, date))
         db.commit()
-        print "Updated listentime to " + str(total)
+        print("Updated listentime to " + str(total))
 

@@ -2,5 +2,5 @@
 
 cp dbase.pyc /usr/local/bin/
 cp daemon.pyc /usr/local/bin/
-cp mpdsd.py /usr/local/bin/mpdsd
-cp init/mpdsd /etc/rc.d/mpdsd
+cp mpsd.py /usr/local/bin/mpsd
+cp init/mpsd /etc/rc.d/mpsd

@@ -1,8 +1,8 @@
-mpdsd v0.1
+mpsd v0.1
 
 About
 =====
-mpdsd is a daemon for keeping detailed stats of music played in mpd.
+mpsd is a daemon for keeping detailed stats of music played in mpd.
 
 Requirements
 ============
@@ -13,12 +13,11 @@ Requirements
 Installation
 ============
 * ./install - this will install to /usr/local/bin, and an init script to /etc/rc.d. Modify this to suit your system's needs.
-
 * To run at startup, add to DAEMONS section of rc.conf
 
 Configuration
 =============
-Currently, configuration is done by editing the beginning of mpdsd.py:
+Currently, configuration is done by editing the beginning of mpsd.py:
         HOST: The mpd host to connect to.
         PORT: The port to connect to.
         PASSWORD: mpd password; if none, set to False.
@@ -29,7 +28,7 @@ Currently, configuration is done by editing the beginning of mpdsd.py:
 
 Usage
 =====
-* sudo mpdsd start
-* sudo mpdsd restart
-* sudo mpdsd stop
+* sudo /etc/rc.d/mpsd start
+* sudo /etc/rc.d/mpsd restart
+* sudo /etc/rc.d/mpsd stop
 

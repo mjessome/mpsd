@@ -21,7 +21,7 @@ PORT = '6600'
 PASSWORD = False
 
 # DB Info
-DB_PATH = "/home/marc/projects/mpdsd/stats.db"
+DB_PATH = "/home/marc/projects/mpsd/stats.db"
 
 # How often to poll MPD (in seconds)
 # The lower the poll frequency, the more accurate listening time
@@ -36,7 +36,7 @@ POLL_FREQUENCY = 1
 ADD_THRESHOLD = 0.2
 
 # The default stats template
-STATS_TEMPLATE = "/home/marc/projects/mpdsd/template.py"
+STATS_TEMPLATE = "/home/marc/projects/mpsd/template.py"
 
 #
 # Configuration ends here
@@ -178,7 +178,7 @@ class mpdStatsDaemon(Daemon):
 
 #
 if __name__ == "__main__":
-        daemon = mpdStatsDaemon('/tmp/mpdsd.pid')
+        daemon = mpdStatsDaemon('/tmp/mpsd.pid')
         if len(sys.argv) >= 2:
                 if 'start' == sys.argv[1]:
                         daemon.start()

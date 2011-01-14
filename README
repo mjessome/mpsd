@@ -9,6 +9,7 @@ Requirements
 * python 3
 * sqlite3
 * python3-mpd
+* (Optional) sqltd (for html page generation)
 
 Installation
 ============
@@ -31,4 +32,5 @@ Usage
 * sudo /etc/rc.d/mpsd start
 * sudo /etc/rc.d/mpsd restart
 * sudo /etc/rc.d/mpsd stop
+* mpsd stats [template]
 

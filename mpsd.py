@@ -4,6 +4,7 @@ import string
 import sys
 import time
 import mpd
+import os
 from socket import error as SocketError
 from socket import timeout as SocketTimeout
 
@@ -37,6 +38,8 @@ ADD_THRESHOLD = 0.2
 
 # The default stats template
 STATS_TEMPLATE = "/home/marc/projects/mpsd/template.py"
+# Path to stats generation script, default "sqltd"
+STATS_SCRIPT = "sqltd"
 
 #
 # Configuration ends here
@@ -176,7 +179,21 @@ class mpdStatsDaemon(Daemon):
 
                 client.disconnect()
 
-#
+
+def generateStats(template):
+        cmd = STATS_SCRIPT if STATS_SCRIPT else "sqltd"
+        rc = os.system(cmd+" "+DB_PATH+" < "+template)
+
+        if rc == 127:
+                print("Error: %s could not be found." % cmd) 
+                exit(1)
+        elif rc != 0:
+                print("Error: Could not generate statistics")
+                exit(1)
+
+        return
+
+
 if __name__ == "__main__":
         daemon = mpdStatsDaemon('/tmp/mpsd.pid')
         if len(sys.argv) >= 2:
@@ -188,15 +205,15 @@ if __name__ == "__main__":
                 elif 'restart' == sys.argv[1]:
                         daemon.restart()
                 elif 'stats' == sys.argv[1]:
-                        if sys.argv[2]:
-                                stats.generateStats(sys.argv[2])
+                        if len(sys.argv) == 3:
+                                generateStats(sys.argv[2])
                         else:
-                                stats.generateStats(STATS_TEMPLATE)
+                                generateStats(STATS_TEMPLATE)
                 else:
                         print("Unknown command")
-                        print(("usage: %s start|stop|restart|stats" % sys.argv[0]))
+                        print(("usage: %s start|stop|restart|stats [stats_template]" % sys.argv[0]))
                         sys.exit(2)
                 sys.exit(0)
         else:
-                print(("usage: %s start|stop|restart|stats" % sys.argv[0]))
+                print(("usage: %s start|stop|restart|stats [stats_template]" % sys.argv[0]))
                 sys.exit(2)

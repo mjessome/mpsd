@@ -59,10 +59,10 @@ def mpdConnect(client, conn_id):
                 print("Could not connect to ", HOST, ":", PORT)
                 return False
         except:
-                print(("Unexpected error: ", sys.exc_info()[0]))
+                print("Unexpected error: ", sys.exc_info()[0])
                 return False
         else:
-                print(("Connected to %s:%s" %(HOST, PORT)))
+                print("Connected to %s:%s" %(HOST, PORT))
                 return True
 
 
@@ -76,13 +76,13 @@ def mpdAuth(client, pword):
                 print("Could not authenticate")
                 return False
         except mpd.ConnectionError:
-                print(("Problems connecting to %s:%s" %(HOST, PORT)))
+                print("Problems connecting to %s:%s" %(HOST, PORT))
                 return False
         except:
-                print(("Unexpected error: %s", sys.exc_info()[1]))
+                print("Unexpected error: %s", sys.exc_info()[1])
                 return False
         else:
-                print(("Authenticated to %s:%s" %(HOST, PORT)))
+                print("Authenticated to %s:%s" %(HOST, PORT))
                 return True
 
 
@@ -113,7 +113,7 @@ def mpdCurrentSong(client):
                 return client.currentsong()
         except (mpd.MPDError, SocketTimeout) as err:
                 print("Could not get status:")
-                print(("\t", err))
+                print("\t", err))
                 return False
 
 
@@ -143,7 +143,7 @@ def eventLoop(client, db):
                                         total = int(status['time'].rsplit(':')[0])
                                         prevDate = None;
                                 if total >= ADD_THRESHOLD*int(currentSong['time']):
-                                        print((currentSong['title']))
+                                        print(currentSong['title'])
                                         prevDate = dbase.dbUpdate(db, currentSong)
                                         trackID = currentSong['id']
                 elif status['state'] == 'stop':
@@ -175,7 +175,7 @@ class mpdStatsDaemon(Daemon):
                         eventLoop(client, db)
 
                 mpdGetStatus(client)
-                print((mpdGetStatus(client)))
+                print(mpdGetStatus(client))
 
                 client.disconnect()
 
@@ -211,9 +211,9 @@ if __name__ == "__main__":
                                 generateStats(STATS_TEMPLATE)
                 else:
                         print("Unknown command")
-                        print(("usage: %s start|stop|restart|stats [stats_template]" % sys.argv[0]))
+                        print("usage: %s start|stop|restart|stats [stats_template]" % sys.argv[0])
                         sys.exit(2)
                 sys.exit(0)
         else:
-                print(("usage: %s start|stop|restart|stats [stats_template]" % sys.argv[0]))
+                print("usage: %s start|stop|restart|stats [stats_template]" % sys.argv[0])
                 sys.exit(2)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cp dbase.py /usr/local/bin/
-cp daemon.py /usr/local/bin/
-cp mpsd.py /usr/local/bin/mpsd
-cp init/mpsd /etc/rc.d/mpsd
+cp -v dbase.py /usr/local/bin/
+cp -v daemon.py /usr/local/bin/
+cp -v mpsd.py /usr/local/bin/mpsd
+cp -v init/mpsd /etc/rc.d/mpsd

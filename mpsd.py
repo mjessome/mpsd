@@ -37,7 +37,7 @@ POLL_FREQUENCY = 1
 ADD_THRESHOLD = 0.2
 
 # The default stats template
-STATS_TEMPLATE = "/home/marc/projects/mpsd/template.py"
+STATS_TEMPLATE = "/home/marc/projects/mpsd/template.html"
 # Path to stats generation script, default "sqltd"
 STATS_SCRIPT = "sqltd"
 

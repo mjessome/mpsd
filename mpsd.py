@@ -22,7 +22,7 @@ PORT = '6600'
 PASSWORD = False
 
 # DB Info
-DB_PATH = "/home/marc/projects/mpsd/stats.db"
+DB_PATH = "/var/local/mpsd.db"
 
 # How often to poll MPD (in seconds)
 # The lower the poll frequency, the more accurate listening time

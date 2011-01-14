@@ -113,7 +113,7 @@ def mpdCurrentSong(client):
                 return client.currentsong()
         except (mpd.MPDError, SocketTimeout) as err:
                 print("Could not get status:")
-                print("\t", err))
+                print("\t", err)
                 return False
 
 

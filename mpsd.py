@@ -34,8 +34,7 @@ LOG_FILE = "/var/log/mpd/mpsd.log"
 # will be, but will use more resources.
 POLL_FREQUENCY = 1
 
-# How far into the song to add it
-# as a fraction of the songlength
+# How far into the song to add it as a fraction of the songlength
 # Make sure < 1, and remember that poll frequency may cause innaccuracies
 # as well, if threshold is high.
 # to add at beginning of a song, set to 0
@@ -165,7 +164,7 @@ def eventLoop(client, db):
         time.sleep(POLL_FREQUENCY)
 
 
-def checkConfig():
+def validConfig():
     if POLL_FREQUENCY >= 1:
         print("Error: Poll Frequency must be < 1")
         return False
@@ -217,6 +216,8 @@ if __name__ == "__main__":
     daemon = mpdStatsDaemon('/tmp/mpsd.pid', stdout=LOG_FILE, stderr=LOG_FILE)
     if len(sys.argv) >= 2:
         if 'start' == sys.argv[1]:
+            if not validConfig():
+                exit(1)
             daemon.start()
             #daemon.run()
         elif 'stop' == sys.argv[1]:

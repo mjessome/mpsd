@@ -21,11 +21,14 @@ Configuration
 Currently, configuration is done by editing the beginning of mpsd.py:
         HOST: The mpd host to connect to.
         PORT: The port to connect to.
-        PASSWORD: mpd password; if none, set to False.
+        PASSWORD: Mpd password; if none, set to False.
         DB_PATH: Where the db should be stored.
+        LOG_PATH: Path to the log file, default is /var/log/mpd/mpsd.log
         POLL_FREQUENCY: How often to poll mpd (in seconds).
-        ADD_THRESHOLD: How far into the song to add the track.
+        ADD_THRESHOLD: How far into the song to add the track, as a fraction of the track length (ie. this is a number between 0 and 1).
         STATS_TEMPLATE: currently not implemented.
+
+Make sure to re-install after reconfiguration.
 
 Usage
 =====

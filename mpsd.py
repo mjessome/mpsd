@@ -5,6 +5,8 @@ import sys
 import time
 import mpd
 import os
+import logging as log
+import logging.handlers
 from socket import error as SocketError
 from socket import timeout as SocketTimeout
 
@@ -23,6 +25,9 @@ PASSWORD = False
 
 # DB Info
 DB_PATH = "/var/local/mpsd.db"
+
+# Log File
+LOG_FILE = "/var/log/mpd/mpsd.log"
 
 # How often to poll MPD (in seconds)
 # The lower the poll frequency, the more accurate listening time
@@ -44,176 +49,193 @@ STATS_SCRIPT = "sqltd"
 #
 # Configuration ends here
 #-------------------------------------------
-
+LOGFORMAT = '%(asctime)s\t%(module)s\t%(message)s'
+LOGHANDLER = log.handlers.RotatingFileHandler(LOG_FILE,
+                maxBytes=50000, backupCount=5)
 CONN_ID = {'host':HOST, 'port':PORT}
 
 
 def mpdConnect(client, conn_id):
-        """
-        Connect to mpd
-        """
-        try:
-                #client.connect(client,**conn_id)
-                client.connect('localhost', '6600')
-        except (mpd.MPDError, SocketError):
-                print("Could not connect to ", HOST, ":", PORT)
-                return False
-        except:
-                print("Unexpected error: ", sys.exc_info()[0])
-                return False
-        else:
-                print("Connected to %s:%s" %(HOST, PORT))
-                return True
+    """
+    Connect to mpd
+    """
+    try:
+        #client.connect(client,**conn_id)
+        client.connect('localhost', '6600')
+    except (mpd.MPDError, SocketError):
+        print("Could not connect to ", HOST, ":", PORT)
+        return False
+    except:
+        print("Unexpected error: ", sys.exc_info()[0])
+        return False
+    else:
+        print("Connected to %s:%s" %(HOST, PORT))
+        return True
 
 
 def mpdAuth(client, pword):
-        """
-        Authenticate mpd connection
-        """
-        try:
-                client.password(pword)
-        except mpd.CommandError:
-                print("Could not authenticate")
-                return False
-        except mpd.ConnectionError:
-                print("Problems connecting to %s:%s" %(HOST, PORT))
-                return False
-        except:
-                print("Unexpected error: %s", sys.exc_info()[1])
-                return False
-        else:
-                print("Authenticated to %s:%s" %(HOST, PORT))
-                return True
+    """
+    Authenticate mpd connection
+    """
+    try:
+        client.password(pword)
+    except mpd.CommandError:
+        print("Could not authenticate")
+        return False
+    except mpd.ConnectionError:
+        print("Problems connecting to %s:%s" %(HOST, PORT))
+        return False
+    except:
+        print("Unexpected error: %s", sys.exc_info()[1])
+        return False
+    else:
+        print("Authenticated to %s:%s" %(HOST, PORT))
+        return True
 
 
 def mpdGetStatus(client):
-        """
-        Get the status of mpd
-        """
-        try:
-                return client.status()
-        except mpd.CommandError:
-                print("Could not get status")
-                return False
-        except mpd.ConnectionError:
-                print("Problems connecting to %s:%s" %(HOST, PORT))
-                return False
-        except:
-                print("Unexpected error:", sys.exc_info()[1])
-                return False
-        else:
-                return True
+    """
+    Get the status of mpd
+    """
+    try:
+        return client.status()
+    except mpd.CommandError:
+        print("Could not get status")
+        return False
+    except mpd.ConnectionError:
+        print("Problems connecting to %s:%s" %(HOST, PORT))
+        return False
+    except:
+        print("Unexpected error:", sys.exc_info()[1])
+        return False
+    else:
+        return True
 
 
 def mpdCurrentSong(client):
-        """
-        Get the current song
-        """
-        try:
-                return client.currentsong()
-        except (mpd.MPDError, SocketTimeout) as err:
-                print("Could not get status:")
-                print("\t", err)
-                return False
+    """
+    Get the current song
+    """
+    try:
+        return client.currentsong()
+    except (mpd.MPDError, SocketTimeout) as err:
+        print("Could not get status:")
+        print("\t", err)
+        return False
 
 
 def eventLoop(client, db):
-        trackID = -1    # let -1 mean that no track has been played yet.
-        total = 0       # total time played in the track
-        prevDate = None # the time when the previous was added
-        while True:
-                status = mpdGetStatus(client)
-                if not status:
-                        client.disconnect();
-                        while not mpdConnect(client, CONN_ID):
-                                print("Attempting reconnect")
-                                time.sleep(POLL_FREQUENCY)
-                        print("Connected!")
-                        if PASSWORD:
-                                mpdAuth(client, PASSWORD)
-                elif status['state'] == 'play':
-                        currentSong = mpdCurrentSong(client)
-                        total = total + POLL_FREQUENCY
-                        #print "Current total: " + str(total)
-                        #print "Current time: " + str(status['time'].rsplit(':')[0])
-                        if currentSong['id'] != trackID:
-                                if prevDate != None:
-                                        #New track
-                                        dbase.updateListentime(db, total, prevDate)
-                                        total = int(status['time'].rsplit(':')[0])
-                                        prevDate = None;
-                                if total >= ADD_THRESHOLD*int(currentSong['time']):
-                                        print(currentSong['title'])
-                                        prevDate = dbase.dbUpdate(db, currentSong)
-                                        trackID = currentSong['id']
-                elif status['state'] == 'stop':
-                        if prevDate != None:
-                                dbase.updateListentime(db, total, prevDate);
-                                total = 0
-                                prevDate = None
+    trackID = -1    # let -1 mean that no track has been played yet.
+    total = 0       # total time played in the track
+    prevDate = None # the time when the previous was added
+    while True:
+        status = mpdGetStatus(client)
+        if not status:
+            client.disconnect();
+            while not mpdConnect(client, CONN_ID):
+                print("Attempting reconnect")
                 time.sleep(POLL_FREQUENCY)
+            print("Connected!")
+            if PASSWORD:
+                mpdAuth(client, PASSWORD)
+        elif status['state'] == 'play':
+            currentSong = mpdCurrentSong(client)
+            total = total + POLL_FREQUENCY
+            #print "Current total: " + str(total)
+            #print "Current time: " + str(status['time'].rsplit(':')[0])
+            if currentSong['id'] != trackID:
+                if prevDate != None:
+                    #New track
+                    dbase.updateListentime(db, total, prevDate)
+                    total = int(status['time'].rsplit(':')[0])
+                    prevDate = None
+                if total >= ADD_THRESHOLD*int(currentSong['time']):
+                    print(currentSong['title'])
+                    try:
+                        prevDate = dbase.dbUpdate(db, currentSong)
+                    except sqlite3.Error, e:
+                        log.error("Sqlite3 Error: %s\nAdding track: %s\n"
+                                % (e, currentSong))
+                    trackID = currentSong['id']
+        elif status['state'] == 'stop':
+            if prevDate != None:
+                dbase.updateListentime(db, total, prevDate);
+                total = 0
+                prevDate = None
+        time.sleep(POLL_FREQUENCY)
 
 
 def checkConfig():
-        if POLL_FREQUENCY >= 1:
-                print("Error: Poll Frequency must be < 1")
-                
+    if POLL_FREQUENCY >= 1:
+        print("Error: Poll Frequency must be < 1")
+        return False
+    if ADD_THRESHOLD < 0 or ADD_THRESHOLD > 1:
+        print("Error: Add threshold must be between 0 and 1.")
+        return False
+    return True
+
 
 class mpdStatsDaemon(Daemon):
-        def run(self):
-                client = mpd.MPDClient()
-                db = dbase.dbConnect(DB_PATH)
-               
-                while True:
-                        while not mpdConnect(client, CONN_ID):
-                                print("Attempting reconnect")
-                                time.sleep(POLL_FREQUENCY)
-                        print("Connected!")
-                        if PASSWORD:
-                                mpdAuth(client, PASSWORD)
-                        
-                        eventLoop(client, db)
+    def run(self):
+        client = mpd.MPDClient()
+        db = dbase.dbConnect(DB_PATH)
 
-                mpdGetStatus(client)
-                print(mpdGetStatus(client))
+        while True:
+            while not mpdConnect(client, CONN_ID):
+                print("Attempting reconnect")
+                time.sleep(POLL_FREQUENCY)
+            print("Connected!")
+            if PASSWORD:
+                mpdAuth(client, PASSWORD)
 
-                client.disconnect()
+        try:
+            eventLoop(client, db)
+        except:
+            e = sys.exc_info()[1]
+            log.error("ERROR: %s" % (e))
+            raise   # For now, re-raise this exception so mpsd quits
+
+        mpdGetStatus(client)
+        log.debug("%s" % mpdGetStatus(client))
+
+        client.disconnect()
 
 
 def generateStats(template):
-        cmd = STATS_SCRIPT if STATS_SCRIPT else "sqltd"
-        rc = os.system(cmd+" "+DB_PATH+" < "+template)
+    cmd = STATS_SCRIPT if STATS_SCRIPT else "sqltd"
+    rc = os.system(cmd+" "+DB_PATH+" < "+template)
 
-        if rc == 127:
-                print("Error: %s could not be found." % cmd) 
-                exit(1)
-        elif rc != 0:
-                print("Error: Could not generate statistics")
-                exit(1)
-
-        return
+    if rc == 127:
+        print("Error: %s could not be found." % cmd)
+        exit(1)
+    elif rc != 0:
+        print("Error: Could not generate statistics")
+        exit(1)
 
 
 if __name__ == "__main__":
-        daemon = mpdStatsDaemon('/tmp/mpsd.pid')
-        if len(sys.argv) >= 2:
-                if 'start' == sys.argv[1]:
-                        daemon.start()
-                        #daemon.run()
-                elif 'stop' == sys.argv[1]:
-                        daemon.stop()
-                elif 'restart' == sys.argv[1]:
-                        daemon.restart()
-                elif 'stats' == sys.argv[1]:
-                        if len(sys.argv) == 3:
-                                generateStats(sys.argv[2])
-                        else:
-                                generateStats(STATS_TEMPLATE)
-                else:
-                        print("Unknown command")
-                        print("usage: %s start|stop|restart|stats [stats_template]" % sys.argv[0])
-                        sys.exit(2)
-                sys.exit(0)
+    daemon = mpdStatsDaemon('/tmp/mpsd.pid', stdout=LOG_FILE, stderr=LOG_FILE)
+    if len(sys.argv) >= 2:
+        if 'start' == sys.argv[1]:
+            daemon.start()
+            #daemon.run()
+        elif 'stop' == sys.argv[1]:
+            daemon.stop()
+        elif 'restart' == sys.argv[1]:
+            daemon.restart()
+        elif 'stats' == sys.argv[1]:
+            if len(sys.argv) == 3:
+                generateStats(sys.argv[2])
+            else:
+                generateStats(STATS_TEMPLATE)
         else:
-                print("usage: %s start|stop|restart|stats [stats_template]" % sys.argv[0])
-                sys.exit(2)
+            print("Unknown command")
+            print("usage: %s start|stop|restart|stats [stats_template]"
+                    % sys.argv[0])
+            sys.exit(2)
+        sys.exit(0)
+    else:
+        print("usage: %s start|stop|restart|stats [stats_template]"
+                % sys.argv[0])
+        sys.exit(2)
+

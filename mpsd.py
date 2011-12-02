@@ -7,6 +7,7 @@ import mpd
 import os
 import logging as log
 import logging.handlers
+from sqlite3 import Error as SqlError
 from socket import error as SocketError
 from socket import timeout as SocketTimeout
 
@@ -152,7 +153,7 @@ def eventLoop(client, db):
                     print(currentSong['title'])
                     try:
                         prevDate = dbase.dbUpdate(db, currentSong)
-                    except sqlite3.Error, e:
+                    except SqlError as e:
                         log.error("Sqlite3 Error: %s\nAdding track: %s\n"
                                 % (e, currentSong))
                     trackID = currentSong['id']
@@ -165,8 +166,8 @@ def eventLoop(client, db):
 
 
 def validConfig():
-    if POLL_FREQUENCY >= 1:
-        print("Error: Poll Frequency must be < 1")
+    if POLL_FREQUENCY < 1:
+        print("Error: Poll Frequency must be >= 1")
         return False
     if ADD_THRESHOLD < 0 or ADD_THRESHOLD > 1:
         print("Error: Add threshold must be between 0 and 1.")
@@ -186,13 +187,12 @@ class mpdStatsDaemon(Daemon):
             print("Connected!")
             if PASSWORD:
                 mpdAuth(client, PASSWORD)
-
-        try:
-            eventLoop(client, db)
-        except:
-            e = sys.exc_info()[1]
-            log.error("ERROR: %s" % (e))
-            raise   # For now, re-raise this exception so mpsd quits
+            try:
+                eventLoop(client, db)
+            except:
+                e = sys.exc_info()[1]
+                log.error("ERROR: %s" % (e))
+                raise   # For now, re-raise this exception so mpsd quits
 
         mpdGetStatus(client)
         log.debug("%s" % mpdGetStatus(client))

@@ -1,0 +1,45 @@
+<html>
+  <head><title>Stats Sample</title></head>
+  <body>
+    <h2>Top 10 Artists of All Time</h2>
+    <sql>SELECT artist.name AS Artist, count(*) AS 'Play Count' FROM listened
+         LEFT JOIN track ON (listened.track = track.id)
+         LEFT JOIN artist ON (track.artist = artist.id)
+         GROUP BY artist.id
+         ORDER BY count(*) DESC
+    </sql>
+    <h2>Top 10 Tracks of All Time</h2>
+    <sql>SELECT track.title AS Track, artist.name AS Artist, album.title AS Album, count(*) as 'Play Count' FROM listened
+         LEFT JOIN track ON (listened.track = track.id)
+         LEFT JOIN album ON (track.album = album.id)
+         LEFT JOIN artist ON (album.artist = artist.id)
+         GROUP BY listened.track
+         ORDER BY count(*)  DESC
+         LIMIT 10
+    </sql>
+    <h2>Top 10 Albums of All Time</h2>
+    <sql>SELECT album.title AS Album, artist.name AS Artist, count(*) as 'Play Count', (sum(listened.listentime)/3600)||':'||((sum(listened.listentime)/60)%60) as 'Listen Time hh:mm' FROM listened
+         LEFT JOIN track ON (listened.track = track.id)
+         LEFT JOIN album ON (track.album = album.id)
+         LEFT JOIN artist ON (album.artist = artist.id)
+         GROUP BY track.album
+         ORDER BY sum(listened.listentime) DESC
+         LIMIT 10
+    </sql>
+    <h2>Most Recently Played</h2>
+    <sql>SELECT listened.date AS Date, track.title AS Track, artist.name AS Artist, album.title AS Album FROM listened
+         LEFT JOIN track ON (listened.track = track.id)
+         LEFT JOIN album ON (track.album = album.id)
+         LEFT JOIN artist ON (album.artist = artist.id)
+         ORDER BY listened.date DESC
+         LIMIT 10
+    </sql>
+    <h2>Most Listened Genre</h2>
+    <sql>SELECT track.genre AS Genre, count(*) AS "Listen Count" FROM listened
+         LEFT JOIN track ON (listened.track = track.id)
+         GROUP BY track.genre
+         ORDER BY count(*) DESC
+         LIMIT 10
+    </sql>
+  </body>
+</html>

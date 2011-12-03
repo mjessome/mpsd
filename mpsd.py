@@ -55,13 +55,30 @@ FILE_HANDLER = logging.handlers.RotatingFileHandler(filename=LOG_FILE,
                         maxBytes=50000, backupCount=5)
 STDOUT_HANDLER = logging.StreamHandler()
 LOG_FORMAT = '%(levelname)s\t%(asctime)s\t%(module)s\t%(message)s'
+STDOUT_FORMAT = '%(levelname)s\t%(module)s\t%(message)s'
 
 CONN_ID = {'host':HOST, 'port':PORT}
 
 
 def usage():
-    print("usage: %s [--fg] (start|stop|restart|stats [stats_template])"
-            % sys.argv[0])
+    print("Usage:")
+    print("  mpsd [OPTION] (start|stop|restart|stats [stats_template])\n")
+    print("Music Player Stats Daemon - a daemon for recording stats from MPD")
+
+    print("\nRequired Arguments:")
+    print("  One of:")
+    print("    start\n\tStart mpsd")
+    print("    stop\n\tStop the currently running mpsd instance")
+    print("    restart\n\tRestart the currently running mpsd instance")
+    print("    stats [stats_template]")
+    print("    \tGenerate statistics using the specified template file.")
+
+    print("\nOptional Arguments:")
+    print("  -c, --config\tSpecify the config file (not yet implemented)")
+    print("  -d, --debug\tRun mpsd in debug mode (not yet implemented)")
+    print("  --fg\tRun mpsd in the foreground")
+    print("  -h, --help\tShow this help message")
+
 
 def mpdConnect(client, conn_id):
     """
@@ -174,10 +191,10 @@ def eventLoop(client, db):
 
 def validConfig():
     if POLL_FREQUENCY < 1:
-        print("Error: Poll Frequency must be >= 1")
+        log.error("Poll Frequency must be >= 1")
         return False
     if ADD_THRESHOLD < 0 or ADD_THRESHOLD > 1:
-        print("Error: Add threshold must be between 0 and 1.")
+        log.error("Add threshold must be between 0 and 1.")
         return False
     return True
 
@@ -229,6 +246,7 @@ if __name__ == "__main__":
             sys.exit(0)
         if '--fg' in sys.argv:
             foreground = True
+            STDOUT_HANDLER.setFormatter(logging.Formatter(STDOUT_FORMAT))
             log.addHandler(STDOUT_HANDLER)
         for a in ['start', 'stop', 'restart', 'stats']:
             if a in sys.argv:

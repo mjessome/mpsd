@@ -49,7 +49,7 @@ STATS_SCRIPT = "sqltd"
 #
 # Configuration ends here
 #-------------------------------------------
-LOGFORMAT = '%(asctime)s\t%(module)s\t%(message)s'
+LOGFORMAT = '%(levelname)s\t%(asctime)s\t%(module)s\t%(message)s'
 LOGHANDLER = log.handlers.RotatingFileHandler(LOG_FILE,
                 maxBytes=50000, backupCount=5)
 CONN_ID = {'host':HOST, 'port':PORT}
@@ -119,9 +119,8 @@ def mpdCurrentSong(client):
     try:
         return client.currentsong()
     except (mpd.MPDError, SocketTimeout) as err:
-        print("Could not get status:")
-        print("\t", err)
-        return False
+        log.error("Could not get status: %s" % (err))
+        return {}
 
 
 def eventLoop(client, db):
@@ -214,13 +213,16 @@ def generateStats(template):
 
 if __name__ == "__main__":
     daemon = mpdStatsDaemon('/tmp/mpsd.pid', stdout=LOG_FILE, stderr=LOG_FILE)
+    logging.basicConfig(filename=LOG_FILE, format=LOGFORMAT, handler=LOGHANDLER, level=logging.DEBUG)
     if len(sys.argv) >= 2:
         if 'start' == sys.argv[1]:
             if not validConfig():
                 exit(1)
+            log.info("Starting mpsd")
             daemon.start()
             #daemon.run()
         elif 'stop' == sys.argv[1]:
+            log.info("Stopping mpsd")
             daemon.stop()
         elif 'restart' == sys.argv[1]:
             daemon.restart()

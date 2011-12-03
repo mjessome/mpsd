@@ -55,6 +55,10 @@ LOGHANDLER = log.handlers.RotatingFileHandler(LOG_FILE,
 CONN_ID = {'host':HOST, 'port':PORT}
 
 
+def usage():
+    print("usage: %s [--fg] (start|stop|restart|stats [stats_template])"
+            % sys.argv[0])
+
 def mpdConnect(client, conn_id):
     """
     Connect to mpd
@@ -63,13 +67,13 @@ def mpdConnect(client, conn_id):
         #client.connect(client,**conn_id)
         client.connect('localhost', '6600')
     except (mpd.MPDError, SocketError):
-        print("Could not connect to ", HOST, ":", PORT)
+        log.error("Could not connect to ", HOST, ":", PORT)
         return False
     except:
-        print("Unexpected error: ", sys.exc_info()[0])
+        log.error("Unexpected error: ", sys.exc_info()[0])
         return False
     else:
-        print("Connected to %s:%s" %(HOST, PORT))
+        log.info("Connected to %s:%s" %(HOST, PORT))
         return True
 
 
@@ -80,16 +84,16 @@ def mpdAuth(client, pword):
     try:
         client.password(pword)
     except mpd.CommandError:
-        print("Could not authenticate")
+        log.error("Could not authenticate")
         return False
     except mpd.ConnectionError:
-        print("Problems connecting to %s:%s" %(HOST, PORT))
+        log.error("Problems connecting to %s:%s" %(HOST, PORT))
         return False
     except:
-        print("Unexpected error: %s", sys.exc_info()[1])
+        log.error("Unexpected error: %s", sys.exc_info()[1])
         return False
     else:
-        print("Authenticated to %s:%s" %(HOST, PORT))
+        log.info("Authenticated to %s:%s" %(HOST, PORT))
         return True
 
 
@@ -100,13 +104,13 @@ def mpdGetStatus(client):
     try:
         return client.status()
     except mpd.CommandError:
-        print("Could not get status")
+        log.error("Could not get status")
         return False
     except mpd.ConnectionError:
-        print("Problems connecting to %s:%s" %(HOST, PORT))
+        log.error("Problems connecting to %s:%s" %(HOST, PORT))
         return False
     except:
-        print("Unexpected error:", sys.exc_info()[1])
+        log.error("Unexpected error:", sys.exc_info()[1])
         return False
     else:
         return True
@@ -132,9 +136,9 @@ def eventLoop(client, db):
         if not status:
             client.disconnect();
             while not mpdConnect(client, CONN_ID):
-                print("Attempting reconnect")
+                log.debug("Attempting reconnect")
                 time.sleep(POLL_FREQUENCY)
-            print("Connected!")
+            log.debug("Connected!")
             if PASSWORD:
                 mpdAuth(client, PASSWORD)
         elif status['state'] == 'play':
@@ -210,35 +214,47 @@ def generateStats(template):
         print("Error: Could not generate statistics")
         exit(1)
 
-
 if __name__ == "__main__":
-    daemon = mpdStatsDaemon('/tmp/mpsd.pid', stdout=LOG_FILE, stderr=LOG_FILE)
     logging.basicConfig(filename=LOG_FILE, format=LOGFORMAT, handler=LOGHANDLER, level=logging.DEBUG)
-    if len(sys.argv) >= 2:
-        if 'start' == sys.argv[1]:
-            if not validConfig():
-                exit(1)
-            log.info("Starting mpsd")
-            daemon.start()
-            #daemon.run()
-        elif 'stop' == sys.argv[1]:
-            log.info("Stopping mpsd")
-            daemon.stop()
-        elif 'restart' == sys.argv[1]:
-            daemon.restart()
-        elif 'stats' == sys.argv[1]:
-            if len(sys.argv) == 3:
-                generateStats(sys.argv[2])
-            else:
-                generateStats(STATS_TEMPLATE)
-        else:
-            print("Unknown command")
-            print("usage: %s start|stop|restart|stats [stats_template]"
-                    % sys.argv[0])
-            sys.exit(2)
-        sys.exit(0)
-    else:
-        print("usage: %s start|stop|restart|stats [stats_template]"
-                % sys.argv[0])
-        sys.exit(2)
+    daemon = mpdStatsDaemon('/tmp/mpsd.pid', stdout=LOG_FILE, stderr=LOG_FILE)
 
+    foreground = False
+    action = None
+
+    if len(sys.argv) >= 2:
+        if '-h' in sys.argv:
+            usage()
+            sys.exit(0)
+        if '--fg' in sys.argv:
+            foreground = True
+        for a in ['start', 'stop', 'restart', 'stats']:
+            if a in sys.argv:
+                if action != None:
+                    usage()
+                    print("\nError: Can only specify one of stat, stop, restart and stats")
+                    exit(1)
+                action = a
+
+    if action == None:
+        usage()
+        print("\nError: One of start, stop, restart or stats must be specified.")
+        sys.exit(2)
+    elif action == 'start':
+        if not validConfig():
+            exit(1)
+        log.info("Starting mpsd")
+        daemon.start() if not foreground else daemon.run()
+    elif action == 'stop':
+        log.info("Stopping mpsd")
+        daemon.stop()
+    elif action == 'restart':
+        daemon.restart()
+    elif action == 'stats':
+        for i in range(len(sys.argv)):
+            if sys.argv[i] == 'stats':
+                if len(sys.argv) > i+1:
+                    generateStats(sys.argv[i+1])
+                else:
+                    generateStats(STATS_TEMPLATE)
+                break
+    sys.exit(0)

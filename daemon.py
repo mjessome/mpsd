@@ -4,7 +4,10 @@
 # http://www.jejik.com/articles/2007/02/a_simple_unix_linux_daemon_in_python/
 
 import sys, os, time, atexit
+import logging
 from signal import SIGTERM
+
+log = logging.getLogger('mpsd')
 
 class Daemon:
     """
@@ -115,7 +118,7 @@ class Daemon:
                 if os.path.exists(self.pidfile):
                     os.remove(self.pidfile)
             else:
-                print(str(err))
+                log.err(str(err))
                 sys.exit(1)
 
     def restart(self):

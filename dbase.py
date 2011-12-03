@@ -1,6 +1,9 @@
 import sqlite3
 import os
 import time
+import logging
+
+log = logging.getLogger('mpsd')
 
 def dbConnect(db_path):
     """
@@ -17,7 +20,7 @@ def dbConnect(db_path):
         db = sqlite3.connect(db_path)
         c = db.cursor()
     except sqlite3.Error as e:
-        print("Error: "+e.args[0])
+        log.error("%s" % (e.args[0]))
         return None
 
     c.execute('''PRAGMA foreign_key = ON''')
@@ -141,10 +144,9 @@ def dbUpdate(db, track):
                     (?,?)''', (None, info[a]))
             db.commit()
             id[a] = c.lastrowid
+            log.debug("Adding new %s: %s, id: %s" % (a, info[a], id[a]))
         else:
             id[a] = int(row[0])
-
-        print("%s: %s, id: %a" % (a, info[a], id[a]))
 
         if(info['artist'] == info['albumartist']):
             #Must be a better way...
@@ -162,8 +164,7 @@ def dbUpdate(db, track):
                     id['albumartist']))
         db.commit()
         id['album'] = c.lastrowid
-
-        print("\tNew Album ID: " + str(id['album']))
+        log.debug("Adding new album: %s, id: %s" % (info['album'], id['album']))
     else:
         id['album'] = int(row[0])
 
@@ -180,7 +181,7 @@ def dbUpdate(db, track):
                   info['time'], info['genre'], id['album']))
         db.commit()
         id['track'] = c.lastrowid
-        print("\tNew Track")
+        log.debug("Adding new track: %s. %s, id: %s" % (info['track'], info['title'], id['track']))
     else:
         id['track'] = int(row[0])
 
@@ -189,8 +190,8 @@ def dbUpdate(db, track):
     c.execute('''INSERT INTO listened VALUES \
              (?, ?, 0)''',
              (id['track'], t))
-
     db.commit()
+    log.info("Added track: %(artist)s - %(album)s - %(track)s. %(title)s" % info)
 
     return t
 
@@ -199,5 +200,5 @@ def updateListentime(db, total, date):
     c = db.cursor();
     c.execute('''UPDATE listened SET listentime=? WHERE date=?''', (total, date))
     db.commit()
-    print("Updated listentime to " + str(total))
+    log.debug("Updated listentime to %d" % (total))
 

@@ -1,1 +1,2 @@
-- Add a general default template.html
+- Use optparse for command line arguments
+- Add config file, usage of ConfigParser

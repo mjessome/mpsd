@@ -5,7 +5,7 @@ import sys
 import time
 import mpd
 import os
-import logging as log
+import logging
 import logging.handlers
 from sqlite3 import Error as SqlError
 from socket import error as SocketError
@@ -49,9 +49,13 @@ STATS_SCRIPT = "sqltd"
 #
 # Configuration ends here
 #-------------------------------------------
-LOGFORMAT = '%(levelname)s\t%(asctime)s\t%(module)s\t%(message)s'
-LOGHANDLER = log.handlers.RotatingFileHandler(LOG_FILE,
-                maxBytes=50000, backupCount=5)
+
+log = logging.getLogger('mpsd')
+FILE_HANDLER = logging.handlers.RotatingFileHandler(filename=LOG_FILE,
+                        maxBytes=50000, backupCount=5)
+STDOUT_HANDLER = logging.StreamHandler()
+LOG_FORMAT = '%(levelname)s\t%(asctime)s\t%(module)s\t%(message)s'
+
 CONN_ID = {'host':HOST, 'port':PORT}
 
 
@@ -77,7 +81,7 @@ def mpdConnect(client, conn_id):
         return True
 
 
-def mpdAuth(client, pword):
+def mpdAuth(client, pword):#
     """
     Authenticate mpd connection
     """
@@ -205,6 +209,7 @@ class mpdStatsDaemon(Daemon):
 
 def generateStats(template):
     cmd = STATS_SCRIPT if STATS_SCRIPT else "sqltd"
+
     rc = os.system(cmd+" "+DB_PATH+" < "+template)
 
     if rc == 127:
@@ -215,9 +220,6 @@ def generateStats(template):
         exit(1)
 
 if __name__ == "__main__":
-    logging.basicConfig(filename=LOG_FILE, format=LOGFORMAT, handler=LOGHANDLER, level=logging.DEBUG)
-    daemon = mpdStatsDaemon('/tmp/mpsd.pid', stdout=LOG_FILE, stderr=LOG_FILE)
-
     foreground = False
     action = None
 
@@ -227,6 +229,7 @@ if __name__ == "__main__":
             sys.exit(0)
         if '--fg' in sys.argv:
             foreground = True
+            log.addHandler(STDOUT_HANDLER)
         for a in ['start', 'stop', 'restart', 'stats']:
             if a in sys.argv:
                 if action != None:
@@ -234,6 +237,12 @@ if __name__ == "__main__":
                     print("\nError: Can only specify one of stat, stop, restart and stats")
                     exit(1)
                 action = a
+
+    daemon = mpdStatsDaemon('/tmp/mpsd.pid')
+    #daemon = mpdStatsDaemon('/tmp/mpsd.pid', stdout=LOG_FILE, stderr=LOG_FILE)
+    log.setLevel(logging.DEBUG)
+    FILE_HANDLER.setFormatter(logging.Formatter(LOG_FORMAT))
+    log.addHandler(FILE_HANDLER)
 
     if action == None:
         usage()

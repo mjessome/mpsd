@@ -15,11 +15,12 @@ class Daemon:
 
     Usage: subclass the Daemon class and override the run() method
     """
-    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+    def __init__(self, pidfile, fork=True, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
         self.pidfile = pidfile
+        self.fork = fork
 
     def daemonize(self):
         """
@@ -69,7 +70,7 @@ class Daemon:
     def delpid(self):
         os.remove(self.pidfile)
 
-    def start(self):
+    def start(self, daemonize=True):
         """
         Start the daemon
         """
@@ -87,7 +88,8 @@ class Daemon:
             sys.exit(1)
 
         # Start the daemon
-        self.daemonize()
+        if self.fork:
+            self.daemonize()
         self.run()
 
     def stop(self):

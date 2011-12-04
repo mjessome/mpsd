@@ -51,6 +51,7 @@ STATS_SCRIPT = "sqltd"
 #-------------------------------------------
 
 log = logging.getLogger('mpsd')
+LOG_LEVEL = logging.INFO
 FILE_HANDLER = logging.handlers.RotatingFileHandler(filename=LOG_FILE,
                         maxBytes=50000, backupCount=5)
 STDOUT_HANDLER = logging.StreamHandler()
@@ -75,7 +76,7 @@ def usage():
 
     print("\nOptional Arguments:")
     print("  -c, --config\tSpecify the config file (not yet implemented)")
-    print("  -d, --debug\tRun mpsd in debug mode (not yet implemented)")
+    print("  -d, --debug\tSet logging mode to debug")
     print("  --fg\tRun mpsd in the foreground")
     print("  -h, --help\tShow this help message")
 
@@ -149,7 +150,7 @@ def mpdCurrentSong(client):
 
 
 def eventLoop(client, db):
-    trackID = -1    # let -1 mean that no track has been played yet.
+    trackID = None  # the id of the playing track
     total = 0       # total time played in the track
     prevDate = None # the time when the previous was added
     while True:
@@ -215,7 +216,7 @@ class mpdStatsDaemon(Daemon):
                 eventLoop(client, db)
             except:
                 e = sys.exc_info()[1]
-                log.error("ERROR: %s" % (e))
+                log.error("%s" % (e))
                 raise   # For now, re-raise this exception so mpsd quits
 
         mpdGetStatus(client)
@@ -226,7 +227,6 @@ class mpdStatsDaemon(Daemon):
 
 def generateStats(template):
     cmd = STATS_SCRIPT if STATS_SCRIPT else "sqltd"
-
     rc = os.system(cmd+" "+DB_PATH+" < "+template)
 
     if rc == 127:
@@ -248,6 +248,8 @@ if __name__ == "__main__":
             foreground = True
             STDOUT_HANDLER.setFormatter(logging.Formatter(STDOUT_FORMAT))
             log.addHandler(STDOUT_HANDLER)
+        if '-d' in sys.argv or '--debug' in sys.argv:
+            LOG_LEVEL = logging.DEBUG
         for a in ['start', 'stop', 'restart', 'stats']:
             if a in sys.argv:
                 if action != None:
@@ -256,9 +258,9 @@ if __name__ == "__main__":
                     exit(1)
                 action = a
 
-    daemon = mpdStatsDaemon('/tmp/mpsd.pid')
+    daemon = mpdStatsDaemon('/tmp/mpsd.pid', fork=not foreground)
     #daemon = mpdStatsDaemon('/tmp/mpsd.pid', stdout=LOG_FILE, stderr=LOG_FILE)
-    log.setLevel(logging.DEBUG)
+    log.setLevel(LOG_LEVEL)
     FILE_HANDLER.setFormatter(logging.Formatter(LOG_FORMAT))
     log.addHandler(FILE_HANDLER)
 
@@ -270,7 +272,7 @@ if __name__ == "__main__":
         if not validConfig():
             exit(1)
         log.info("Starting mpsd")
-        daemon.start() if not foreground else daemon.run()
+        daemon.start()
     elif action == 'stop':
         log.info("Stopping mpsd")
         daemon.stop()

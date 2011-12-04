@@ -52,9 +52,6 @@ STATS_SCRIPT = "sqltd"
 
 log = logging.getLogger('mpsd')
 LOG_LEVEL = logging.INFO
-FILE_HANDLER = logging.handlers.RotatingFileHandler(filename=LOG_FILE,
-                        maxBytes=50000, backupCount=5)
-STDOUT_HANDLER = logging.StreamHandler()
 LOG_FORMAT = '%(levelname)s\t%(asctime)s\t%(module)s\t%(message)s'
 STDOUT_FORMAT = '%(levelname)s\t%(module)s\t%(message)s'
 
@@ -79,6 +76,19 @@ def usage():
     print("  -d, --debug\tSet logging mode to debug")
     print("  --fg\tRun mpsd in the foreground")
     print("  -h, --help\tShow this help message")
+
+def initialize_logger(logfile, stdout=False):
+    fhandler = logging.handlers.RotatingFileHandler(filename=logfile,
+                        maxBytes=50000, backupCount=5)
+    fhandler.setFormatter(logging.Formatter(LOG_FORMAT))
+    log.setLevel(LOG_LEVEL)
+    log.addHandler(fhandler)
+
+    if stdout:
+        shandler = logging.StreamHandler()
+        shandler.setFormatter(logging.Formatter(STDOUT_FORMAT))
+        log.addHandler(shandler)
+
 
 
 def mpdConnect(client, conn_id):
@@ -246,29 +256,38 @@ if __name__ == "__main__":
             sys.exit(0)
         if '--fg' in sys.argv:
             foreground = True
-            STDOUT_HANDLER.setFormatter(logging.Formatter(STDOUT_FORMAT))
-            log.addHandler(STDOUT_HANDLER)
         if '-d' in sys.argv or '--debug' in sys.argv:
             LOG_LEVEL = logging.DEBUG
         for a in ['start', 'stop', 'restart', 'stats']:
             if a in sys.argv:
                 if action != None:
                     usage()
-                    print("\nError: Can only specify one of stat, stop, restart and stats")
+                    print("\nError: Can only specify one of start, stop, restart and stats")
                     exit(1)
                 action = a
 
     daemon = mpdStatsDaemon('/tmp/mpsd.pid', fork=not foreground)
-    #daemon = mpdStatsDaemon('/tmp/mpsd.pid', stdout=LOG_FILE, stderr=LOG_FILE)
-    log.setLevel(LOG_LEVEL)
-    FILE_HANDLER.setFormatter(logging.Formatter(LOG_FORMAT))
-    log.addHandler(FILE_HANDLER)
 
     if action == None:
         usage()
         print("\nError: One of start, stop, restart or stats must be specified.")
         sys.exit(2)
-    elif action == 'start':
+    elif action == 'stats':
+        for i in range(len(sys.argv)):
+            if sys.argv[i] == 'stats':
+                if len(sys.argv) > i+1:
+                    generateStats(sys.argv[i+1])
+                else:
+                    generateStats(STATS_TEMPLATE)
+                break
+        sys.exit(0)
+
+    # Initialize the logger now, since stats shouldn't
+    # require root access.
+    initialize_logger(LOG_FILE, stdout=foreground)
+
+    # Daemon actions
+    if action == 'start':
         if not validConfig():
             exit(1)
         log.info("Starting mpsd")
@@ -278,12 +297,4 @@ if __name__ == "__main__":
         daemon.stop()
     elif action == 'restart':
         daemon.restart()
-    elif action == 'stats':
-        for i in range(len(sys.argv)):
-            if sys.argv[i] == 'stats':
-                if len(sys.argv) > i+1:
-                    generateStats(sys.argv[i+1])
-                else:
-                    generateStats(STATS_TEMPLATE)
-                break
     sys.exit(0)

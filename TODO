@@ -1,2 +1,3 @@
 - Use optparse for command line arguments
 - Add config file, usage of ConfigParser
+- Add flag to build database

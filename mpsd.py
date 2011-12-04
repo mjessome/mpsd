@@ -71,10 +71,10 @@ def usage():
     print("    \tGenerate statistics using the specified template file.")
 
     print("\nOptional Arguments:")
-    print("  -c, --config\tSpecify the config file (not yet implemented)")
-    print("  -d, --debug\tSet logging mode to debug")
-    print("  --fg\tRun mpsd in the foreground")
-    print("  -h, --help\tShow this help message")
+    print("  -c, --config <FILE>\n\tSpecify the config file (not implemented)")
+    print("  -d, --debug\n\tSet logging mode to debug")
+    print("  --fg\n\tRun mpsd in the foreground")
+    print("  -h, --help\n\tShow this help message")
 
 
 def initialize_logger(logfile, stdout=False):
@@ -95,7 +95,7 @@ def mpdConnect(client, conn_id):
     Connect to mpd
     """
     try:
-        client.connect(client, **conn_id)
+        client.connect(**conn_id)
     except (mpd.MPDError, SocketError):
         log.error("Could not connect to %(host)s:%(port)s" % (conn_id))
         return False
@@ -103,7 +103,7 @@ def mpdConnect(client, conn_id):
         log.error("Unexpected error: %s" % (sys.exc_info()[1]))
         return False
     else:
-        log.info("Connected to %(host)s:%(port)s" %(HOST, PORT))
+        log.info("Connected to %(host)s:%(port)s" % (conn_id))
         return True
 
 
@@ -117,13 +117,13 @@ def mpdAuth(client, pword):
         log.error("Could not authenticate")
         return False
     except mpd.ConnectionError:
-        log.error("Problems connecting to %s:%s" %(HOST, PORT))
+        log.error("Problems authenticating.")
         return False
     except:
         log.error("Unexpected error: %s", sys.exc_info()[1])
         return False
     else:
-        log.info("Authenticated to %s:%s" %(HOST, PORT))
+        log.info("Authenticated")
         return True
 
 
@@ -137,7 +137,7 @@ def mpdGetStatus(client):
         log.error("Could not get status")
         return False
     except mpd.ConnectionError:
-        log.error("Problems connecting to %s:%s" %(HOST, PORT))
+        log.error("Error communicating with client.")
         return False
     except:
         log.error("Unexpected error:", sys.exc_info()[1])

@@ -52,11 +52,10 @@ STATS_SCRIPT = "sqltd"
 
 log = logging.getLogger('mpsd')
 LOG_LEVEL = logging.INFO
-LOG_FORMAT = '%(levelname)s\t%(asctime)s\t%(module)s\t%(message)s'
+LOG_FORMAT = '%(levelname)s\t%(asctime)s\t%(module)s %(lineno)d\t%(message)s'
 STDOUT_FORMAT = '%(levelname)s\t%(module)s\t%(message)s'
 
 CONN_ID = {'host':HOST, 'port':PORT}
-
 
 def usage():
     print("Usage:")
@@ -77,6 +76,7 @@ def usage():
     print("  --fg\tRun mpsd in the foreground")
     print("  -h, --help\tShow this help message")
 
+
 def initialize_logger(logfile, stdout=False):
     fhandler = logging.handlers.RotatingFileHandler(filename=logfile,
                         maxBytes=50000, backupCount=5)
@@ -89,25 +89,25 @@ def initialize_logger(logfile, stdout=False):
         shandler.setFormatter(logging.Formatter(STDOUT_FORMAT))
         log.addHandler(shandler)
 
+
 def mpdConnect(client, conn_id):
     """
     Connect to mpd
     """
     try:
-        #client.connect(client,**conn_id)
-        client.connect('localhost', '6600')
+        client.connect(client, **conn_id)
     except (mpd.MPDError, SocketError):
-        log.error("Could not connect to ", HOST, ":", PORT)
+        log.error("Could not connect to %(host)s:%(port)s" % (conn_id))
         return False
     except:
-        log.error("Unexpected error: ", sys.exc_info()[0])
+        log.error("Unexpected error: %s" % (sys.exc_info()[1]))
         return False
     else:
-        log.info("Connected to %s:%s" %(HOST, PORT))
+        log.info("Connected to %(host)s:%(port)s" %(HOST, PORT))
         return True
 
 
-def mpdAuth(client, pword):#
+def mpdAuth(client, pword):
     """
     Authenticate mpd connection
     """

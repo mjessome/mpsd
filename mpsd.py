@@ -64,7 +64,7 @@ def usage():
     print("Music Player Stats Daemon - a daemon for recording stats from MPD")
 
     print("\nRequired Arguments:")
-    print("  One of:")
+    print("  One of (start|stop|restart|stats [stats_template]):")
     print("    start\n\tStart mpsd")
     print("    stop\n\tStop the currently running mpsd instance")
     print("    restart\n\tRestart the currently running mpsd instance")
@@ -88,8 +88,6 @@ def initialize_logger(logfile, stdout=False):
         shandler = logging.StreamHandler()
         shandler.setFormatter(logging.Formatter(STDOUT_FORMAT))
         log.addHandler(shandler)
-
-
 
 def mpdConnect(client, conn_id):
     """

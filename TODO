@@ -1,2 +1,4 @@
 - Use optparse for command line arguments
 - Add config file, usage of ConfigParser
+- Allow for sending to a db on a server.
+   |-> If network/server not available, buffer locally and send on reconnect.

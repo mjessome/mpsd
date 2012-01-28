@@ -1,12 +1,15 @@
 <html>
   <head><title>Stats Sample</title></head>
   <body>
+    <h2>Total listened tracks</h2>
+    <sql>SELECT count(*) AS "Total" FROM listened</sql>
     <h2>Top 10 Artists of All Time</h2>
     <sql>SELECT artist.name AS Artist, count(*) AS 'Play Count' FROM listened
          LEFT JOIN track ON (listened.track = track.id)
          LEFT JOIN artist ON (track.artist = artist.id)
          GROUP BY artist.id
          ORDER BY count(*) DESC
+         LIMIT 10
     </sql>
     <h2>Top 10 Tracks of All Time</h2>
     <sql>SELECT track.title AS Track, artist.name AS Artist, album.title AS Album, count(*) as 'Play Count' FROM listened

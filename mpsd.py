@@ -58,23 +58,23 @@ STDOUT_FORMAT = '%(levelname)s\t%(module)s\t%(message)s'
 CONN_ID = {'host':HOST, 'port':PORT}
 
 def usage():
-    print("Usage:")
-    print("  mpsd [OPTION] (start|stop|restart|stats [stats_template])\n")
-    print("Music Player Stats Daemon - a daemon for recording stats from MPD")
+    print "Usage:"
+    print "  mpsd [OPTION] (start|stop|restart|stats [stats_template])\n"
+    print "Music Player Stats Daemon - a daemon for recording stats from MPD"
 
-    print("\nRequired Arguments:")
-    print("  One of (start|stop|restart|stats [stats_template]):")
-    print("    start\n\tStart mpsd")
-    print("    stop\n\tStop the currently running mpsd instance")
-    print("    restart\n\tRestart the currently running mpsd instance")
-    print("    stats [stats_template]")
-    print("    \tGenerate statistics using the specified template file.")
+    print "\nRequired Arguments:"
+    print "  One of (start|stop|restart|stats [stats_template]):"
+    print "    start\n\tStart mpsd"
+    print "    stop\n\tStop the currently running mpsd instance"
+    print "    restart\n\tRestart the currently running mpsd instance"
+    print "    stats [stats_template]"
+    print "    \tGenerate statistics using the specified template file."
 
-    print("\nOptional Arguments:")
-    print("  -c, --config <FILE>\n\tSpecify the config file (not implemented)")
-    print("  -d, --debug\n\tSet logging mode to debug")
-    print("  --fg\n\tRun mpsd in the foreground")
-    print("  -h, --help\n\tShow this help message")
+    print "\nOptional Arguments:"
+    print "  -c, --config <FILE>\n\tSpecify the config file (not implemented)"
+    print "  -d, --debug\n\tSet logging mode to debug"
+    print "  --fg\n\tRun mpsd in the foreground"
+    print "  -h, --help\n\tShow this help message"
 
 
 def initialize_logger(logfile, stdout=False):
@@ -97,7 +97,7 @@ def mpdConnect(client, conn_id):
     try:
         client.connect(**conn_id)
     except (mpd.MPDError, SocketError):
-        log.error("Could not connect to %(host)s:%(port)s" % (conn_id))
+        log.debug("Could not connect to %(host)s:%(port)s" % (conn_id))
         return False
     except:
         log.error("Unexpected error: %s" % (sys.exc_info()[1]))
@@ -152,8 +152,8 @@ def mpdCurrentSong(client):
     """
     try:
         return client.currentsong()
-    except (mpd.MPDError, SocketTimeout) as err:
-        log.error("Could not get status: %s" % (err))
+    except (mpd.MPDError, SocketTimeout):
+        log.error("Could not get status: %s" % (sys.exc_info()[1]))
         return {}
 
 
@@ -183,7 +183,7 @@ def eventLoop(client, db):
                     total = int(status['time'].rsplit(':')[0])
                     prevDate = None
                 if total >= ADD_THRESHOLD*int(currentSong['time']):
-                    print(currentSong['title'])
+                    print currentSong['title']
                     try:
                         prevDate = dbase.dbUpdate(db, currentSong)
                     except SqlError as e:
@@ -215,16 +215,15 @@ class mpdStatsDaemon(Daemon):
 
         while True:
             while not mpdConnect(client, CONN_ID):
-                print("Attempting reconnect")
+                print "Attempting reconnect"
                 time.sleep(POLL_FREQUENCY)
-            print("Connected!")
+            print "Connected!"
             if PASSWORD:
                 mpdAuth(client, PASSWORD)
             try:
                 eventLoop(client, db)
             except:
-                e = sys.exc_info()[1]
-                log.error("%s" % (e))
+                log.error("%s" % (sys.exc_info()[1]))
                 raise   # For now, re-raise this exception so mpsd quits
 
         mpdGetStatus(client)
@@ -238,10 +237,10 @@ def generateStats(template):
     rc = os.system(cmd+" "+DB_PATH+" < "+template)
 
     if rc == 127:
-        print("Error: %s could not be found." % cmd)
+        print "Error: %s could not be found." % cmd
         exit(1)
     elif rc != 0:
-        print("Error: Could not generate statistics")
+        print "Error: Could not generate statistics"
         exit(1)
 
 if __name__ == "__main__":
@@ -260,7 +259,7 @@ if __name__ == "__main__":
             if a in sys.argv:
                 if action != None:
                     usage()
-                    print("\nError: Can only specify one of start, stop, restart and stats")
+                    print "\nError: Can only specify one of start, stop, restart and stats"
                     exit(1)
                 action = a
 
@@ -268,7 +267,7 @@ if __name__ == "__main__":
 
     if action == None:
         usage()
-        print("\nError: One of start, stop, restart or stats must be specified.")
+        print "\nError: One of start, stop, restart or stats must be specified."
         sys.exit(2)
     elif action == 'stats':
         for i in range(len(sys.argv)):

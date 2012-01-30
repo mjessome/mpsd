@@ -151,7 +151,10 @@ def mpdCurrentSong(client):
     Get the current song
     """
     try:
-        return client.currentsong()
+        curSong = client.currentsong()
+        for k in curSong.keys():
+            curSong[k] = unicode(curSong[k], 'utf-8')
+        return curSong
     except (mpd.MPDError, SocketTimeout):
         log.error("Could not get status: %s" % (sys.exc_info()[1]))
         return {}

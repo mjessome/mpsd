@@ -72,10 +72,7 @@ def getInfo(info):
 
     rval = {}
 
-    if 'albumartist' in info:
-        rval['albumartist'] = info['albumartist']
-    else:
-        rval['albumartist'] = ""
+    rval['albumartist'] = info.get('albumartist', "")
 
     if 'artist' in info:
         rval['artist'] = info['artist']
@@ -98,15 +95,8 @@ def getInfo(info):
     else:
         rval['track'] = 0
 
-    if 'title' in info:
-        rval['title'] = info['title']
-    else:
-        rval['title'] = "Unknown Track"
-
-    if 'album' in info:
-        rval['album'] = info['album']
-    else:
-        rval['album'] = "Unknown Album"
+    rval['title'] = info.get('title', "Unknown Track")
+    rval['album'] = info.get('album', "Unknown Album")
 
     if 'genre' in info:
         #check if genre is a list

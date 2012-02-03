@@ -186,7 +186,7 @@ def eventLoop(client, db):
                     total = int(status['time'].rsplit(':')[0])
                     prevDate = None
                 if total >= ADD_THRESHOLD*int(currentSong['time']):
-                    print currentSong['title']
+                    print currentSong.get('title', 'Unknown Title')
                     try:
                         prevDate = dbase.dbUpdate(db, currentSong)
                     except SqlError as e:

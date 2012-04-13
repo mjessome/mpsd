@@ -15,7 +15,8 @@ class Daemon:
 
     Usage: subclass the Daemon class and override the run() method
     """
-    def __init__(self, pidfile, fork=True, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+    def __init__(self, pidfile, fork=True, stdin='/dev/null',
+                 stdout='/dev/null', stderr='/dev/null'):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
@@ -34,7 +35,8 @@ class Daemon:
                 # exit first parent
                 sys.exit(0)
         except OSError as e:
-            sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
+            sys.stderr.write("fork #1 failed: %d (%s)\n"
+                    % (e.errno, e.strerror))
             sys.exit(1)
 
         # decouple from parent environment
@@ -49,7 +51,8 @@ class Daemon:
                 # exit from second parent
                 sys.exit(0)
         except OSError as e:
-            sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
+            sys.stderr.write("fork #2 failed: %d (%s)\n"
+                    % (e.errno, e.strerror))
             sys.exit(1)
 
         # redirect standard file descriptors

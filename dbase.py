@@ -171,7 +171,8 @@ def dbUpdate(db, track):
                   info['time'], info['genre'], id['album']))
         db.commit()
         id['track'] = c.lastrowid
-        log.debug("Adding new track: %s. %s, id: %s" % (info['track'], info['title'], id['track']))
+        log.debug("Adding new track: %s. %s, id: %s"
+                % (info['track'], info['title'], id['track']))
     else:
         id['track'] = int(row[0])
 

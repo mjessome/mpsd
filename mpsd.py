@@ -153,6 +153,8 @@ def mpdCurrentSong(client):
     try:
         curSong = client.currentsong()
         for k in curSong.keys():
+            if isinstance(curSong[k], (tuple, list)):
+                curSong[k] = curSong[k][0]
             curSong[k] = unicode(curSong[k], 'utf-8')
         return curSong
     except (mpd.MPDError, SocketTimeout):

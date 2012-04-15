@@ -68,6 +68,7 @@ class Daemon:
         # write pidfile
         atexit.register(self.delpid)
         pid = str(os.getpid())
+        log.info("pid: %s" % pid)
         open(self.pidfile,'w+').write("%s\n" % pid)
 
     def delpid(self):
@@ -86,7 +87,8 @@ class Daemon:
             pid = None
 
         if pid:
-            message = "pidfile %s already exist. Daemon already running?\n"
+            message = "pidfile %s already exist. Daemon already running?\n" \
+                        % self.pidfile
             sys.stderr.write(message % self.pidfile)
             sys.exit(1)
 

@@ -186,7 +186,6 @@ class mpdStatsDaemon(daemon.Daemon):
         self.template = template
 
         self.mpd = MPD(HOST, PORT, PASSWORD)
-        print "create db object..."
         self.db = dbase.MpsdDB(DB_PATH)
 
         # set up logging
@@ -279,31 +278,31 @@ if __name__ == "__main__":
     action = None
 
     args = {}
-    argc = len(sys.argv)
-    for i in range(1,argc):
-        if sys.argv[i] == '-h':
+
+    argv = sys.argv[1:].__iter__()
+    for arg in argv:
+        if arg == '-h':
             usage()
             sys.exit(0)
-        elif sys.argv[i] == '--fg':
+        elif arg == '--fg':
             args['fork'] = False
-        elif sys.argv[i] == '-d' or sys.argv[i] == '--debug':
+        elif arg == '-d' or arg == '--debug':
             args['log_level'] = logging.DEBUG
-        elif sys.argv[i] == '--template':
-            if argc <= i+1:
+        elif arg == '--template':
+            args['template'] = argv.next()
+            if not args['template']:
                 print "No template file specified for --template."
                 exit(1)
-            i += 1
-            args['template'] = sys.argv[i]
-        elif sys.argv[i] in ['start', 'stop', 'restart', 'stats']:
+        elif arg in ('start', 'stop', 'restart', 'stats'):
             if action:
                 usage()
                 print "\nError: Can only specify one of ",
-                print "start, stop, restart and stats"
+                print "start, stop, restart or stats."
                 exit(1)
-            action = sys.argv[i]
+            action = arg
         else:
             usage()
-            print "\nInvalid argument '%s'." % sys.argv[i]
+            print"\nInvalid argument '%s'." % arg
             exit(1)
 
     mpsd = mpdStatsDaemon(**args)

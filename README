@@ -35,5 +35,5 @@ Usage
 * sudo /etc/rc.d/mpsd start
 * sudo /etc/rc.d/mpsd restart
 * sudo /etc/rc.d/mpsd stop
-* mpsd stats [template]
+* mpsd stats
 

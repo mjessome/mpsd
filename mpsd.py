@@ -179,7 +179,6 @@ class mpdStatsDaemon(daemon.Daemon):
         self.fork = fork
 
         # config options
-        self.db_path = DB_PATH
         self.log_file = LOG_FILE
         self.poll_frequency = POLL_FREQUENCY
         self.add_threshold = ADD_THRESHOLD
@@ -187,6 +186,8 @@ class mpdStatsDaemon(daemon.Daemon):
         self.template = template
 
         self.mpd = MPD(HOST, PORT, PASSWORD)
+        print "create db object..."
+        self.db = dbase.MpsdDB(DB_PATH)
 
         # set up logging
         initialize_logger(self.log_file, log_level=log_level, stdout=not fork)
@@ -208,7 +209,7 @@ class mpdStatsDaemon(daemon.Daemon):
         if not os.access(self.template, os.F_OK):
             print >> sys.stderr, "Invalid template file %s" % self.template
         cmd = self.stats_script if self.stats_script else "sqltd"
-        rc = os.system("%s %s < %s" % (cmd, self.db_path, self.template))
+        rc = os.system("%s %s < %s" % (cmd, self.db.path, self.template))
         if rc == 127:
             print "Error: %s could not be found." % cmd
             exit(1)
@@ -216,7 +217,7 @@ class mpdStatsDaemon(daemon.Daemon):
             print "Error: Could not generate statistics"
             exit(1)
 
-    def eventLoop(self, db):
+    def eventLoop(self):
         """
         The main event loop for mpsd.
         """
@@ -239,20 +240,20 @@ class mpdStatsDaemon(daemon.Daemon):
                 if currentSong['id'] != trackID:
                     if prevDate != None:
                         #New track
-                        dbase.updateListentime(db, total, prevDate)
+                        self.db.updateListentime(total, prevDate)
                         total = int(status['time'].rsplit(':')[0])
                         prevDate = None
                     if total >= self.add_threshold*int(currentSong['time']):
                         print currentSong.get('title', 'Unknown Title')
                         try:
-                            prevDate = dbase.dbUpdate(db, currentSong)
+                            prevDate = self.db.update(currentSong)
                         except SqlError as e:
                             log.error("Sqlite3 Error: %s\nAdding track: %s\n"
                                     % (e, currentSong))
                         trackID = currentSong['id']
             elif status['state'] == 'stop':
                 if prevDate != None:
-                    dbase.updateListentime(db, total, prevDate)
+                    self.db.updateListentime(total, prevDate)
                     total = 0
                     prevDate = None
             time.sleep(self.poll_frequency)
@@ -261,14 +262,14 @@ class mpdStatsDaemon(daemon.Daemon):
         """
         Main application run in Daemon
         """
-        db = dbase.dbConnect(self.db_path)
+        self.db.connect()
 
         while not self.mpd.connect():
             print "Attempting reconnect"
             time.sleep(self.poll_frequency)
         print "Connected!"
         try:
-            self.eventLoop(db)
+            self.eventLoop()
         except:
             log.error("%s" % (sys.exc_info()[1]))
             raise   # For now, re-raise this exception so mpsd quits
